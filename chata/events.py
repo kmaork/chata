@@ -3,8 +3,13 @@ from dataclasses import dataclass
 import datetime as dt
 from functools import cached_property
 
-BASE = '^(?P<_time>.+?) - '
+# Android: 'time - ...'
+# IPhone: '[time] ...' (we leave the [ in to recognize the format later)
+from typing import Optional
+
+BASE = r'^(?P<time_str>.+?)(?: - |\] )'
 WHO = '(?P<who>.+?)'
+
 
 def all_subclasses(cls):
     return [cls, *(c for sc in map(all_subclasses, cls.__subclasses__()) for c in sc)]
@@ -42,6 +47,44 @@ class WordSetConverter:
         return set(split_word_list(getattr(instance, self.attr)))
 
 
+def parse_time(time_str: str) -> Optional[dt.datetime]:
+    """ 6x faster than dt.datetime.strptime(self._time, '%m/%d/%y, %H:%M') """
+    t = time_str
+    try:
+        if t.startswith('['):
+            t = t[1:]
+            if t[2] == '/':
+                # 22/07/2017, 4:43:17
+                day = int(t[:2])
+                month = int(t[3:5])
+                year = int(t[6:10])
+                i = t.find(':', 13)
+                hour = int(t[12:i])
+                minute = int(t[i + 1:i + 3])
+                second = int(t[i + 4:i + 6])
+            else:
+                # 18:47, 12/23/2017
+                hour = int(t[:2])
+                minute = int(t[3:5])
+                second = 0
+                month = int(t[7:9])
+                day = int(t[10:12])
+                year = int(t[13:])
+        else:
+            # 11/24/20, 21:26
+            i = t.find('/')
+            month = int(t[:i])
+            i2 = t.find('/', i + 1)
+            day = int(t[i + 1:i2])
+            year = int(t[i2 + 1:i2 + 3]) + 2000
+            hour = int(t[i2 + 5:i2 + 7])
+            minute = int(t[i2 + 8:i2 + 10])
+            second = 0
+        return dt.datetime(year, month, day, hour, minute, second)
+    except ValueError:
+        return None
+
+
 @dataclass
 class Event:
     REGEX = None
@@ -50,14 +93,18 @@ class Event:
     def __init_subclass__(cls, regex=None, flags=0):
         cls.REGEX = None if regex is None else re.compile(regex, flags=flags)
 
-    _time: str
+    time: str
 
     @classmethod
     def from_string(cls, line):
         match = cls.REGEX.match(line)
         if match is None:
             raise NotMatchedException(cls.REGEX, line)
-        return cls(**match.groupdict())
+        group = match.groupdict()
+        time = parse_time(group.pop('time_str'))
+        if time is None:
+            raise NotMatchedException(cls.REGEX, line)
+        return cls(time=time, **group)
 
     @classmethod
     def _parse(cls, string: str):
@@ -89,20 +136,6 @@ class Event:
                     last_event = current_event
         yield current_event
 
-    @cached_property
-    def time(self):
-        """ 6x faster than strptime """
-        t = self._time
-        i = t.find('/')
-        month = int(t[:i])
-        i2 = t.find('/', i + 1)
-        day = int(t[i + 1:i2])
-        year = int(t[i2 + 1:i2 + 3]) + 2000
-        hour = int(t[i2 + 5:i2 + 7])
-        minute = int(t[i2 + 8:i2 + 10])
-        return dt.datetime(year, month, day, hour, minute)
-        # return dt.datetime.strptime(self._time, '%m/%d/%y, %H:%M')
-
 
 @dataclass
 class Encrypted(Event, regex=f'{BASE}Messages and calls are end-to-end encrypted. ' \
@@ -123,7 +156,7 @@ class Admin(Event, regex=f'{BASE}You\'re now an admin$'):
 
 
 @dataclass
-class AnonymousAdd(Event, regex=f'{BASE}(?P<_added>.+?) was added$'):
+class AnonymousAdd(Event, regex=f'{BASE}(?P<_added>.+?) (?:was|were) added$'):
     _added: str
     added = WordSetConverter()
 
@@ -133,9 +166,11 @@ class Action(Event):
     who: str
 
 
+# Android: '... created group "..."'
+# IPhone: '... created this group'
 @dataclass
-class Created(Action, regex=f'{BASE}{WHO} created group "(?P<name>.+?)"$'):
-    name: str
+class Created(Action, regex=f'{BASE}{WHO} created (this )?group( "(?P<name>.+?)")?$'):
+    name: Optional[str]
 
 
 @dataclass

@@ -44,7 +44,8 @@ class GroupStats(EventHandler):
 
     @Handler(Created)
     def handle_created(self, created):
-        self.name = created.name
+        if created.name is not None:
+            self.name = created.name
         self.create_time = created.time
 
     @Handler(SubjectChanged)
