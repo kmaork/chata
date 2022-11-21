@@ -181,9 +181,9 @@ class YouChangedGroupDescription(Action, regex=f'{BASE}{WHO} changed the group d
 
 
 @dataclass
-class SubjectChanged(Action, regex=f'{BASE}{WHO} changed the subject from "(?P<old_name>.+?)" '
-                                   'to "(?P<new_name>.+?)"$'):
-    old_name: str
+class SubjectChanged(Action, regex=f'{BASE}{WHO} changed the subject (from "(?P<old_name>.+?)" )?'
+                                   'to ["“](?P<new_name>.+?)["”]$'):
+    old_name: Optional[str]
     new_name: str
 
 
@@ -246,5 +246,10 @@ class TurnedOnDisappearing(Action, regex=f'{BASE}{WHO} turned on disappearing me
 class TurnedOffDisappearing(Action, regex=f'{BASE}{WHO} turned off disappearing messages. Tap to change.'):
     pass
 
+
+@dataclass
+class ChangedPhoneNumber(Action, regex=f'{BASE}{WHO} changed their phone number to a new number. '
+                                       f'Tap to message or add the new number.'):
+    pass
 
 ALL_EVENT_TYPES = sorted(filter(lambda sc: sc.REGEX is not None, all_subclasses(Event)), key=lambda sc: sc.ORDER)

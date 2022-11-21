@@ -11,12 +11,15 @@ class Visualizations:
     visualizations: list[Visualization]
 
     def show(self):
+        types = set(map(type, self.visualizations))
+        for vis_type in types:
+            vis_type.pre_show()
         for vis in self.visualizations:
             try:
                 vis.show()
             except NoData:
                 pass
-        for vis_type in set(map(type, self.visualizations)):
+        for vis_type in types:
             vis_type.post_show()
 
     def save(self, directory: str):

@@ -4,6 +4,7 @@ import os
 from abc import abstractmethod, ABCMeta
 from typing import Dict, Callable, Type, TYPE_CHECKING, Any
 
+import matplotlib
 from matplotlib import pyplot as plt
 
 from .events import Event
@@ -38,6 +39,10 @@ class Visualization(metaclass=ABCMeta):
         pass
 
     @classmethod
+    def pre_show(cls):
+        pass
+
+    @classmethod
     def post_show(cls):
         pass
 
@@ -54,11 +59,17 @@ class PyplotVisualization(Visualization):
         self._create_figure().savefig(f'{os.path.join(directory, type(self).__name__)}.png')
 
     @classmethod
+    def pre_show(cls):
+        # TODO
+        # matplotlib.rcParams['font.family'] = "Some native font with better glyph coverage?"
+        pass
+
+    @classmethod
     def post_show(cls):
         plt.show()
 
 
-class EventHandler(Stat):
+class EventHandler(Stat, metaclass=ABCMeta):
     __handlers: Dict[Type[Event], Callable[[EventHandler, Event], Any]] = {}
 
     def set_instance_handlers(self, handlers):
