@@ -8,6 +8,7 @@ from .messages_per_day import MessagesPerDay
 from .most_active import MostActive
 from .people_over_time import PeopleOverTime
 from .total_people import TotalPeople
+from .group_names import GroupNames
 
 __all__ = [
     'AverageMessagesOverTimeInGroup',
@@ -20,4 +21,5 @@ __all__ = [
     'MostActive',
     'PeopleOverTime',
     'TotalPeople',
+    'GroupNames',
 ]

@@ -1,7 +1,6 @@
 import os
 import sys
 from dataclasses import dataclass
-from bidi.algorithm import get_display
 
 from chata.core import Visualization, NoData
 from chata.pool import StatPool
@@ -32,7 +31,7 @@ class LeastActive(Visualization):
         i = 1
         for amount, seniority_days, person in least_active:
             if amount <= threshold:
-                print(f'  {i}. {get_display(person)}: {amount} ({seniority_days:.1f})', file=io)
+                print(f'  {i}. {person}: {amount} ({seniority_days:.1f})', file=io)
                 i += 1
 
     def save(self, directory: str):

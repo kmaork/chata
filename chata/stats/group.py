@@ -1,5 +1,5 @@
 import datetime as dt
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 from bidi.algorithm import get_display
@@ -12,11 +12,16 @@ from chata.pool import StatPool
 @dataclass
 class GroupStats(EventHandler):
     num_messages: int = 0
-    name: str = 'Whatsapp Conversation'
+    names: list[str] = field(default_factory=list)
     first_message_time: Optional[dt.datetime] = None
     last_message_time: Optional[dt.datetime] = None
     create_time: Optional[dt.datetime] = None
     is_first_msg: bool = True
+    default_name: str = 'Whatsapp Conversation'
+
+    @property
+    def name(self) -> str:
+        return self.names[-1] if self.names else self.default_name
 
     @classmethod
     def from_pool(cls, pool: StatPool):
@@ -45,14 +50,14 @@ class GroupStats(EventHandler):
     @Handler(Created)
     def handle_created(self, created):
         if created.name is not None:
-            self.name = created.name
+            self.names.append(created.name)
         self.create_time = created.time
 
     @Handler(SubjectChanged)
     def handle_subject_changed(self, change):
-        self.name = change.new_name
+        self.names.append(change.new_name)
 
     @Handler(Encrypted)
     def handle_encrypted(self, encrypted: Encrypted):
         if encrypted.group_name is not None:
-            self.name = encrypted.group_name
+            self.default_name = encrypted.group_name
