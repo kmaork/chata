@@ -21,11 +21,11 @@ pip install chata
    - To save visualizations to a directory, run `chata save <path_to_exported.txt> <output_dir>`
 
 ## Example outputs
-![](images/Leaderboard.png)
-![](images/FrequentHours.png)
-![](images/CommonIntervals.png)
-![](images/FrequentDays.png)
-![](images/PeopleOverTime.png)
-![](images/MessagesPerDay.png)
-![](images/MostActive.png)
-![](images/AverageMessagesOverTimeInGroup.png)
+![](https://raw.githubusercontent.com/kmaork/chata/master/images/Leaderboard.png)
+![](https://raw.githubusercontent.com/kmaork/chata/master/images/FrequentHours.png)
+![](https://raw.githubusercontent.com/kmaork/chata/master/images/CommonIntervals.png)
+![](https://raw.githubusercontent.com/kmaork/chata/master/images/FrequentDays.png)
+![](https://raw.githubusercontent.com/kmaork/chata/master/images/PeopleOverTime.png)
+![](https://raw.githubusercontent.com/kmaork/chata/master/images/MessagesPerDay.png)
+![](https://raw.githubusercontent.com/kmaork/chata/master/images/MostActive.png)
+![](https://raw.githubusercontent.com/kmaork/chata/master/images/AverageMessagesOverTimeInGroup.png)
