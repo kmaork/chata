@@ -4,7 +4,7 @@ from typing import Optional
 
 from bidi.algorithm import get_display
 
-from chata.events import Message, Created, SubjectChanged
+from chata.events import Message, Created, SubjectChanged, Encrypted
 from chata.core import EventHandler, Handler
 from chata.pool import StatPool
 
@@ -51,3 +51,8 @@ class GroupStats(EventHandler):
     @Handler(SubjectChanged)
     def handle_subject_changed(self, change):
         self.name = change.new_name
+
+    @Handler(Encrypted)
+    def handle_encrypted(self, encrypted: Encrypted):
+        if encrypted.group_name is not None:
+            self.name = encrypted.group_name

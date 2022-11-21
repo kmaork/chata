@@ -1,7 +1,6 @@
 import re
 from dataclasses import dataclass
 import datetime as dt
-from functools import cached_property
 
 # Android: 'time - ...'
 # IPhone: '[time] ...' (we leave the [ in to recognize the format later)
@@ -88,7 +87,7 @@ def parse_time(time_str: str) -> Optional[dt.datetime]:
 @dataclass
 class Event:
     REGEX = None
-    LIKELIHOOD = 1
+    ORDER = 2
 
     def __init_subclass__(cls, regex=None, flags=0):
         cls.REGEX = None if regex is None else re.compile(regex, flags=flags)
@@ -137,11 +136,14 @@ class Event:
         yield current_event
 
 
+# Android: 'time - Messages and calls...'
+# IPhone: '[time] group_name: Messages and calls...'
 @dataclass
-class Encrypted(Event, regex=f'{BASE}Messages and calls are end-to-end encrypted. ' \
-                             'No one outside of this chat, not even WhatsApp, ' \
-                             'can read or listen to them. Tap to learn more.$'):
-    pass
+class Encrypted(Event, regex=f'{BASE}((?P<group_name>.+?): )?Messages and calls are end-to-end encrypted.*'):
+    # Looks the same as a message on IPhone. TODO: this is a performance hit
+    ORDER = 0
+
+    group_name: Optional[str]
 
 
 @dataclass
@@ -179,7 +181,7 @@ class YouChangedGroupDescription(Action, regex=f'{BASE}{WHO} changed the group d
 
 
 @dataclass
-class SubjectChanged(Action, regex=f'{BASE}{WHO} changed the subject from "(?P<old_name>.+?)" ' \
+class SubjectChanged(Action, regex=f'{BASE}{WHO} changed the subject from "(?P<old_name>.+?)" '
                                    'to "(?P<new_name>.+?)"$'):
     old_name: str
     new_name: str
@@ -203,7 +205,7 @@ class SettingsChanged(Action, regex=f'{BASE}{WHO} changed this group\'s settings
 
 @dataclass
 class Message(Action, regex=f'{BASE}{WHO}: (?P<message>.+?)$', flags=re.DOTALL):
-    LIKELIHOOD = 0
+    ORDER = 1
 
     message: str
 
@@ -245,4 +247,4 @@ class TurnedOffDisappearing(Action, regex=f'{BASE}{WHO} turned off disappearing 
     pass
 
 
-ALL_EVENT_TYPES = sorted(filter(lambda sc: sc.REGEX is not None, all_subclasses(Event)), key=lambda sc: sc.LIKELIHOOD)
+ALL_EVENT_TYPES = sorted(filter(lambda sc: sc.REGEX is not None, all_subclasses(Event)), key=lambda sc: sc.ORDER)
