@@ -18,7 +18,7 @@ class Leaderboard(PyplotVisualization):
         return cls(pool.get(MessagesPerPerson), pool.get(GroupStats))
 
     def _create_figure(self, max_people=25):
-        mpp = self.messages_per_person.num_messages_per_person.items()
+        mpp = [(k, v) for k, v in self.messages_per_person.num_messages_per_person.items() if v > 0]
         max_people = min(max_people, len(mpp))
         labels, sizes = zip(*sorted(mpp, key=lambda t: t[1])[-max_people:])
         labels = [f'{get_display(label)} ({len(labels) - i})' for i, label in enumerate(labels)]
@@ -34,4 +34,3 @@ class Leaderboard(PyplotVisualization):
         ax.set_ylim(ymin=-0.5, ymax=len(labels) - 0.5)
         plt.tight_layout()
         return fig
-

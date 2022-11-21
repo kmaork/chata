@@ -32,7 +32,7 @@ class GroupStats(EventHandler):
 
     @property
     def title(self) -> str:
-        return f'{get_display(self.name)} {self.time_range}'
+        return f'{get_display(self.name)} ({self.time_range})'
 
     @Handler(Message)
     def handle_message(self, message):

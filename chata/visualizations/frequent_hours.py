@@ -32,4 +32,3 @@ class FrequentHours(PyplotVisualization):
         ax.fill([*angles, angles[0]], [*values, values[0]], 'b', alpha=0.1)
         plt.subplots_adjust(top=0.85)
         return fig
-
