@@ -10,6 +10,8 @@ Person = str
 
 @dataclass
 class PeopleTracker(EventHandler):
+    BLACKLIST = {'you', 'You'}
+
     aliases: Dict[Person, Person] = field(default_factory=dict)
     add_callbacks: List[Callable[[Person, Event], Any]] = field(default_factory=list)
     remove_callbacks: List[Callable[[Person, Event], Any]] = field(default_factory=list)
@@ -28,9 +30,10 @@ class PeopleTracker(EventHandler):
         self.remove_callbacks.append(callback)
 
     def _add(self, person: Person, event: Event):
-        original = self._get_original(person)
-        for callback in self.add_callbacks:
-            callback(original, event)
+        if person not in self.BLACKLIST:
+            original = self._get_original(person)
+            for callback in self.add_callbacks:
+                callback(original, event)
 
     def _remove(self, person: Person, event: Event):
         original = self._get_original(person)
