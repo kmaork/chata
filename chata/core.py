@@ -4,6 +4,8 @@ import os
 from abc import abstractmethod, ABCMeta
 from typing import Dict, Callable, Type, TYPE_CHECKING, Any
 
+from matplotlib import pyplot as plt
+
 from .events import Event
 
 if TYPE_CHECKING:
@@ -31,6 +33,10 @@ class Visualization(metaclass=ABCMeta):
     def save(self, directory: str):
         pass
 
+    @classmethod
+    def post_show(cls):
+        pass
+
 
 class PyplotVisualization(Visualization):
     @abstractmethod
@@ -42,6 +48,10 @@ class PyplotVisualization(Visualization):
 
     def save(self, directory: str = '.'):
         self._create_figure().savefig(f'{os.path.join(directory, type(self).__name__)}.png')
+
+    @classmethod
+    def post_show(cls):
+        plt.show()
 
 
 class EventHandler(Stat):

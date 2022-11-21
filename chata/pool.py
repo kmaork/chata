@@ -13,6 +13,8 @@ class Visualizations:
     def show(self):
         for vis in self.visualizations:
             vis.show()
+        for vis_type in set(map(type, self.visualizations)):
+            vis_type.post_show()
 
     def save(self, directory: str):
         os.makedirs(directory, exist_ok=True)
