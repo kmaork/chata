@@ -19,9 +19,10 @@ class Leaderboard(PyplotVisualization):
 
     def _create_figure(self, max_people=25):
         mpp = self.messages_per_person.num_messages_per_person.items()
+        max_people = min(max_people, len(mpp))
         labels, sizes = zip(*sorted(mpp, key=lambda t: t[1])[-max_people:])
         labels = [f'{get_display(label)} ({len(labels) - i})' for i, label in enumerate(labels)]
-        fig, ax = plt.subplots(figsize=(10, len(labels) * 0.4))
+        fig, ax = plt.subplots(figsize=(10, max(len(labels), 5) * 0.4))
         ax.set_title(f'Top {max_people}\n{self.group.title}', pad=40)
         ax.xaxis.tick_top()
         ax.spines['right'].set_visible(False)
@@ -30,6 +31,7 @@ class Leaderboard(PyplotVisualization):
             ax.text(val + 3, i, str(val))
         best = max(sizes)
         ax.barh(labels, sizes, color=[hsv_to_rgb([(s / best / 3) % 1, 1, 1]) for s in sizes])
-        fig.tight_layout()
         ax.set_ylim(ymin=-0.5, ymax=len(labels) - 0.5)
+        plt.tight_layout()
         return fig
+

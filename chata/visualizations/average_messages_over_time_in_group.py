@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from collections import defaultdict
 from dataclasses import dataclass
 
-from chata.core import PyplotVisualization
+from chata.core import PyplotVisualization, NoData
 from chata.pool import StatPool
 from chata.stats import GroupStats, MessagesPerSeniority
 
@@ -43,27 +43,34 @@ class AverageMessagesOverTimeInGroup(PyplotVisualization):
     def from_pool(cls, pool: StatPool):
         return cls(pool.get(GroupStats), pool.get(MessagesPerSeniority))
 
-    def get_average_per_seniority(self, num_groups):
+    def get_averages_per_seniority(self, num_groups):
         mpsbp = {k: dict(v) for k, v in self.messages_per_seniority.messages_by_seniority_by_person.items()
                  if len(v) > 1}  # we're ignoring the last day
+        if len(mpsbp) <= 2:
+            raise NoData()
         for person, mps in mpsbp.items():
             # ignoring last day because it is incomplete
             mps.pop(max(mps))
         groups = divide({person: sum(mps.values()) / (max(mps) + 1)
                          for person, mps in mpsbp.items()}, num_groups)
+        averages_per_seniority = []
         for group in groups:
             average_per_seniority = defaultdict(Average)
             for person in group:
                 mps = mpsbp[person]
                 for seniority, messages in mps.items():
                     average_per_seniority[seniority] += messages
-            yield {seniority: average.value for seniority, average in average_per_seniority.items()}
+            if average_per_seniority:
+                averages_per_seniority.append({seniority: average.value
+                                               for seniority, average in average_per_seniority.items()})
+        return averages_per_seniority
 
     def _create_figure(self):
         percentages = 5
+        averages_per_seniority = self.get_averages_per_seniority(percentages)
         fig, ax = plt.subplots()
         ax.set_title(f'Average messages per day over seniority in group\n{self.group.title}')
-        for average_percents_per_seniority in self.get_average_per_seniority(percentages):
+        for average_percents_per_seniority in averages_per_seniority:
             for seniority in range(max(average_percents_per_seniority)):
                 average_percents_per_seniority.setdefault(seniority, 0)
             xs, ys = zip(*sorted(average_percents_per_seniority.items()))

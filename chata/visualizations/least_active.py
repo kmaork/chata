@@ -3,7 +3,7 @@ import sys
 from dataclasses import dataclass
 from bidi.algorithm import get_display
 
-from chata.core import Visualization
+from chata.core import Visualization, NoData
 from chata.pool import StatPool
 from chata.stats import GroupStats, MessagesPerPerson, PeopleStats
 
@@ -26,6 +26,8 @@ class LeastActive(Visualization):
                 least_active.append((self.messages_per_person.num_messages_per_person[person],
                                      seniority_days, person))
         least_active = sorted(least_active, key=lambda t: (t[0], -t[1]))
+        if not least_active:
+            raise NoData()
         print(f'Least active in last {last_days} days:', file=io)
         i = 1
         for amount, seniority_days, person in least_active:

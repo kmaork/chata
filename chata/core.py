@@ -12,6 +12,10 @@ if TYPE_CHECKING:
     from .pool import StatPool
 
 
+class NoData(Exception):
+    pass
+
+
 class Stat(metaclass=ABCMeta):
     @classmethod
     @abstractmethod

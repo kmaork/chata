@@ -22,9 +22,11 @@ class MostActive(PyplotVisualization):
         labels, sizes = zip(*sorted(self.messages_per_person.num_messages_per_person.items(), key=lambda t: -t[1]))
         labels = list(map(get_display, labels))[:max_people]
         others = sum(sizes[max_people:])
+        extra_data = [others] if others else []
+        extra_labels = ['Others'] if others else []
         sizes = sizes[:max_people]
         # https://matplotlib.org/3.3.3/gallery/pie_and_polar_charts/pie_and_donut_labels.html
-        ax.pie([others, *sizes], labels=['Others', *labels], autopct='%1.1f%%',
+        ax.pie([*extra_data, *sizes], labels=[*extra_labels, *labels], autopct='%1.1f%%',
                pctdistance=0.85, startangle=210, labeldistance=1.05)
         ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
         return fig

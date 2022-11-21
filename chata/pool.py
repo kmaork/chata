@@ -2,8 +2,8 @@ import os
 from dataclasses import dataclass, field
 from typing import List, Dict, Type, Optional, Iterable
 
-from chata.events import Event
-from chata.core import EventHandler, Stat, Visualization
+from .events import Event
+from .core import EventHandler, Stat, Visualization, NoData
 
 
 @dataclass
@@ -12,14 +12,20 @@ class Visualizations:
 
     def show(self):
         for vis in self.visualizations:
-            vis.show()
+            try:
+                vis.show()
+            except NoData:
+                pass
         for vis_type in set(map(type, self.visualizations)):
             vis_type.post_show()
 
     def save(self, directory: str):
         os.makedirs(directory, exist_ok=True)
         for vis in self.visualizations:
-            vis.save(directory)
+            try:
+                vis.save(directory)
+            except NoData:
+                pass
 
 
 @dataclass
